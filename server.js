@@ -71,10 +71,13 @@ bot.onText(/\/orders/, async (msg) => {
   }
   
   try {
+    console.log('📦 Fetching recent orders...');
     const ordersSnapshot = await db.collection('orders')
       .orderBy('createdAt', 'desc')
       .limit(10)
       .get();
+    
+    console.log('📦 Orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
       bot.sendMessage(msg.chat.id, '📦 No orders found');
@@ -92,7 +95,8 @@ bot.onText(/\/orders/, async (msg) => {
     bot.sendMessage(msg.chat.id, message);
   } catch (error) {
     console.error('Error fetching orders:', error);
-    bot.sendMessage(msg.chat.id, '❌ Error fetching orders');
+    console.error('Error details:', error.message);
+    bot.sendMessage(msg.chat.id, `❌ Error fetching orders: ${error.message}`);
   }
 });
 
@@ -103,11 +107,14 @@ bot.onText(/\/pending/, async (msg) => {
   }
   
   try {
+    console.log('📦 Fetching pending orders...');
     const ordersSnapshot = await db.collection('orders')
       .where('status', '==', 'Pending')
       .orderBy('createdAt', 'desc')
       .limit(10)
       .get();
+    
+    console.log('📦 Pending orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
       bot.sendMessage(msg.chat.id, '📦 No pending orders');
@@ -125,7 +132,8 @@ bot.onText(/\/pending/, async (msg) => {
     bot.sendMessage(msg.chat.id, message);
   } catch (error) {
     console.error('Error fetching pending orders:', error);
-    bot.sendMessage(msg.chat.id, '❌ Error fetching pending orders');
+    console.error('Error details:', error.message);
+    bot.sendMessage(msg.chat.id, `❌ Error fetching pending orders: ${error.message}`);
   }
 });
 
@@ -136,11 +144,14 @@ bot.onText(/\/shipped/, async (msg) => {
   }
   
   try {
+    console.log('📦 Fetching shipped orders...');
     const ordersSnapshot = await db.collection('orders')
       .where('status', '==', 'Shipped')
       .orderBy('createdAt', 'desc')
       .limit(10)
       .get();
+    
+    console.log('📦 Shipped orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
       bot.sendMessage(msg.chat.id, '📦 No shipped orders');
@@ -158,7 +169,8 @@ bot.onText(/\/shipped/, async (msg) => {
     bot.sendMessage(msg.chat.id, message);
   } catch (error) {
     console.error('Error fetching shipped orders:', error);
-    bot.sendMessage(msg.chat.id, '❌ Error fetching shipped orders');
+    console.error('Error details:', error.message);
+    bot.sendMessage(msg.chat.id, `❌ Error fetching shipped orders: ${error.message}`);
   }
 });
 
@@ -169,11 +181,14 @@ bot.onText(/\/delivered/, async (msg) => {
   }
   
   try {
+    console.log('📦 Fetching delivered orders...');
     const ordersSnapshot = await db.collection('orders')
       .where('status', '==', 'Delivered')
       .orderBy('createdAt', 'desc')
       .limit(10)
       .get();
+    
+    console.log('📦 Delivered orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
       bot.sendMessage(msg.chat.id, '📦 No delivered orders');
@@ -191,7 +206,8 @@ bot.onText(/\/delivered/, async (msg) => {
     bot.sendMessage(msg.chat.id, message);
   } catch (error) {
     console.error('Error fetching delivered orders:', error);
-    bot.sendMessage(msg.chat.id, '❌ Error fetching delivered orders');
+    console.error('Error details:', error.message);
+    bot.sendMessage(msg.chat.id, `❌ Error fetching delivered orders: ${error.message}`);
   }
 });
 
