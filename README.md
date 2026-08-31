@@ -1,0 +1,55 @@
+# NOVAE Telegram Bot
+
+Interactive Telegram bot for NOVAE store management.
+
+## Features
+
+- `/orders` - View recent orders
+- `/pending` - View pending orders  
+- `/shipped` - View shipped orders
+- `/delivered` - View delivered orders
+- `/stats` - View store statistics
+- `/help` - Show available commands
+
+## Setup
+
+### 1. Install Dependencies
+```bash
+npm install
+```
+
+### 2. Environment Variables
+Create a `.env` file with:
+```
+TELEGRAM_BOT_TOKEN=your-bot-token-from-botfather
+FIREBASE_SERVICE_ACCOUNT=your-firebase-service-account-json
+PORT=3000
+```
+
+### 3. Local Testing
+```bash
+npm start
+```
+
+## Render Deployment
+
+### 1. Create New Web Service
+- Go to [Render.com](https://render.com)
+- Click "New +" → "Web Service"
+- Connect your GitHub repository
+- Select "NOVAE-telegram-bot" folder
+
+### 2. Configure Environment Variables
+Add these in Render dashboard:
+- `TELEGRAM_BOT_TOKEN` - Your bot token from @BotFather
+- `FIREBASE_SERVICE_ACCOUNT` - Your Firebase service account JSON
+- `PORT` - Render sets this automatically
+
+### 3. Set Telegram Webhook
+After deployment, set the webhook:
+```
+https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook?url=https://your-app.onrender.com/webhook/YOUR_BOT_TOKEN
+```
+
+### 4. Test Commands
+Send `/start` to your bot to see available commands.
