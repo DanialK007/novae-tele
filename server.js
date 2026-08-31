@@ -10,14 +10,33 @@ app.use(express.json());
 // Initialize Firebase Admin
 let db;
 try {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
+  
+  if (!serviceAccountString) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set');
+  }
+  
+  console.log('🔐 FIREBASE_SERVICE_ACCOUNT length:', serviceAccountString.length);
+  
+  const serviceAccount = JSON.parse(serviceAccountString);
+  console.log('🔐 Firebase service account parsed successfully');
+  
   const firebaseApp = initializeApp({
     credential: cert(serviceAccount),
   });
+  
   db = getFirestore(firebaseApp);
-  console.log('✅ Firebase initialized');
+  console.log('✅ Firebase initialized successfully');
+  
+  // Test connection
+  db.collection('orders').limit(1).get()
+    .then(() => console.log('✅ Firebase connection test successful'))
+    .catch(err => console.error('❌ Firebase connection test failed:', err));
+    
 } catch (error) {
   console.error('❌ Firebase initialization failed:', error);
+  console.error('❌ Error details:', error.message);
+  db = null; // Explicitly set to null
 }
 
 // Initialize Telegram Bot
@@ -45,6 +64,11 @@ Available commands:
 });
 
 bot.onText(/\/orders/, async (msg) => {
+  if (!db) {
+    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    return;
+  }
+  
   try {
     const ordersSnapshot = await db.collection('orders')
       .orderBy('createdAt', 'desc')
@@ -72,6 +96,11 @@ bot.onText(/\/orders/, async (msg) => {
 });
 
 bot.onText(/\/pending/, async (msg) => {
+  if (!db) {
+    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    return;
+  }
+  
   try {
     const ordersSnapshot = await db.collection('orders')
       .where('status', '==', 'Pending')
@@ -100,6 +129,11 @@ bot.onText(/\/pending/, async (msg) => {
 });
 
 bot.onText(/\/shipped/, async (msg) => {
+  if (!db) {
+    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    return;
+  }
+  
   try {
     const ordersSnapshot = await db.collection('orders')
       .where('status', '==', 'Shipped')
@@ -128,6 +162,11 @@ bot.onText(/\/shipped/, async (msg) => {
 });
 
 bot.onText(/\/delivered/, async (msg) => {
+  if (!db) {
+    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    return;
+  }
+  
   try {
     const ordersSnapshot = await db.collection('orders')
       .where('status', '==', 'Delivered')
@@ -156,6 +195,11 @@ bot.onText(/\/delivered/, async (msg) => {
 });
 
 bot.onText(/\/stats/, async (msg) => {
+  if (!db) {
+    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    return;
+  }
+  
   try {
     const ordersSnapshot = await db.collection('orders').get();
     const orders = ordersSnapshot.docs.map(doc => doc.data());
