@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
-const { initializeApp, getFirestore } = require('firebase-admin/app');
+const { initializeApp } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 const { cert } = require('firebase-admin/app');
 
 const app = express();
