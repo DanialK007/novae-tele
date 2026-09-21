@@ -10,6 +10,10 @@ Interactive Telegram bot for NOVAE store management.
 - `/delivered` - View delivered orders
 - `/stats` - View store statistics
 - `/help` - Show available commands
+- `/show` - Show reply keyboard below chat
+- `/hide` - Hide reply keyboard
+
+**Reply Keyboard**: Buttons appear below the chat input for quick access to all commands
 
 ## Setup
 
