@@ -49,24 +49,32 @@ app.post(`/webhook/${process.env.TELEGRAM_BOT_TOKEN}`, (req, res) => {
   res.sendStatus(200);
 });
 
-// Commands
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, `
-🛒 Welcome to NOVAE Store Bot!
+// Helper function to get keyboard
+function getKeyboard() {
+  return {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '📦 Recent Orders', callback_data: '/orders' },
+          { text: '📊 Statistics', callback_data: '/stats' }
+        ],
+        [
+          { text: '⏳ Pending', callback_data: '/pending' },
+          { text: '🚚 Shipped', callback_data: '/shipped' }
+        ],
+        [
+          { text: '✅ Delivered', callback_data: '/delivered' },
+          { text: '❓ Help', callback_data: '/help' }
+        ]
+      ]
+    }
+  };
+}
 
-Available commands:
-/orders - View recent orders
-/pending - View pending orders
-/shipped - View shipped orders
-/delivered - View delivered orders
-/stats - View store statistics
-/help - Show this help message
-  `.trim());
-});
-
-bot.onText(/\/orders/, async (msg) => {
+// Command handlers
+async function handleOrdersCommand(chatId) {
   if (!db) {
-    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    bot.sendMessage(chatId, '❌ Firebase not initialized. Please check environment variables.');
     return;
   }
   
@@ -80,7 +88,7 @@ bot.onText(/\/orders/, async (msg) => {
     console.log('📦 Orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
-      bot.sendMessage(msg.chat.id, '📦 No orders found');
+      bot.sendMessage(chatId, '📦 No orders found', getKeyboard());
       return;
     }
 
@@ -92,17 +100,17 @@ bot.onText(/\/orders/, async (msg) => {
       message += `  Customer: ${order.customer.name}\n\n`;
     });
 
-    bot.sendMessage(msg.chat.id, message);
+    bot.sendMessage(chatId, message, getKeyboard());
   } catch (error) {
     console.error('Error fetching orders:', error);
     console.error('Error details:', error.message);
-    bot.sendMessage(msg.chat.id, `❌ Error fetching orders: ${error.message}`);
+    bot.sendMessage(chatId, `❌ Error fetching orders: ${error.message}`, getKeyboard());
   }
-});
+}
 
-bot.onText(/\/pending/, async (msg) => {
+async function handlePendingCommand(chatId) {
   if (!db) {
-    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    bot.sendMessage(chatId, '❌ Firebase not initialized. Please check environment variables.');
     return;
   }
   
@@ -117,7 +125,7 @@ bot.onText(/\/pending/, async (msg) => {
     console.log('📦 Pending orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
-      bot.sendMessage(msg.chat.id, '📦 No pending orders');
+      bot.sendMessage(chatId, '📦 No pending orders', getKeyboard());
       return;
     }
 
@@ -129,17 +137,17 @@ bot.onText(/\/pending/, async (msg) => {
       message += `  Total: Ks ${order.total.toLocaleString()}\n\n`;
     });
 
-    bot.sendMessage(msg.chat.id, message);
+    bot.sendMessage(chatId, message, getKeyboard());
   } catch (error) {
     console.error('Error fetching pending orders:', error);
     console.error('Error details:', error.message);
-    bot.sendMessage(msg.chat.id, `❌ Error fetching pending orders: ${error.message}`);
+    bot.sendMessage(chatId, `❌ Error fetching pending orders: ${error.message}`, getKeyboard());
   }
-});
+}
 
-bot.onText(/\/shipped/, async (msg) => {
+async function handleShippedCommand(chatId) {
   if (!db) {
-    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    bot.sendMessage(chatId, '❌ Firebase not initialized. Please check environment variables.');
     return;
   }
   
@@ -154,7 +162,7 @@ bot.onText(/\/shipped/, async (msg) => {
     console.log('📦 Shipped orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
-      bot.sendMessage(msg.chat.id, '📦 No shipped orders');
+      bot.sendMessage(chatId, '📦 No shipped orders', getKeyboard());
       return;
     }
 
@@ -166,17 +174,17 @@ bot.onText(/\/shipped/, async (msg) => {
       message += `  Total: Ks ${order.total.toLocaleString()}\n\n`;
     });
 
-    bot.sendMessage(msg.chat.id, message);
+    bot.sendMessage(chatId, message, getKeyboard());
   } catch (error) {
     console.error('Error fetching shipped orders:', error);
     console.error('Error details:', error.message);
-    bot.sendMessage(msg.chat.id, `❌ Error fetching shipped orders: ${error.message}`);
+    bot.sendMessage(chatId, `❌ Error fetching shipped orders: ${error.message}`, getKeyboard());
   }
-});
+}
 
-bot.onText(/\/delivered/, async (msg) => {
+async function handleDeliveredCommand(chatId) {
   if (!db) {
-    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    bot.sendMessage(chatId, '❌ Firebase not initialized. Please check environment variables.');
     return;
   }
   
@@ -191,7 +199,7 @@ bot.onText(/\/delivered/, async (msg) => {
     console.log('📦 Delivered orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
-      bot.sendMessage(msg.chat.id, '📦 No delivered orders');
+      bot.sendMessage(chatId, '📦 No delivered orders', getKeyboard());
       return;
     }
 
@@ -203,17 +211,17 @@ bot.onText(/\/delivered/, async (msg) => {
       message += `  Total: Ks ${order.total.toLocaleString()}\n\n`;
     });
 
-    bot.sendMessage(msg.chat.id, message);
+    bot.sendMessage(chatId, message, getKeyboard());
   } catch (error) {
     console.error('Error fetching delivered orders:', error);
     console.error('Error details:', error.message);
-    bot.sendMessage(msg.chat.id, `❌ Error fetching delivered orders: ${error.message}`);
+    bot.sendMessage(chatId, `❌ Error fetching delivered orders: ${error.message}`, getKeyboard());
   }
-});
+}
 
-bot.onText(/\/stats/, async (msg) => {
+async function handleStatsCommand(chatId) {
   if (!db) {
-    bot.sendMessage(msg.chat.id, '❌ Firebase not initialized. Please check environment variables.');
+    bot.sendMessage(chatId, '❌ Firebase not initialized. Please check environment variables.');
     return;
   }
   
@@ -252,15 +260,15 @@ bot.onText(/\/stats/, async (msg) => {
 • Cancelled: ${statusCounts.Cancelled}
     `.trim();
 
-    bot.sendMessage(msg.chat.id, message);
+    bot.sendMessage(chatId, message, getKeyboard());
   } catch (error) {
     console.error('Error fetching stats:', error);
-    bot.sendMessage(msg.chat.id, '❌ Error fetching statistics');
+    bot.sendMessage(chatId, '❌ Error fetching statistics', getKeyboard());
   }
-});
+}
 
-bot.onText(/\/help/, (msg) => {
-  bot.sendMessage(msg.chat.id, `
+function handleHelpCommand(chatId) {
+  bot.sendMessage(chatId, `
 🛒 NOVAE Store Bot Commands:
 
 /orders - View recent orders
@@ -269,7 +277,85 @@ bot.onText(/\/help/, (msg) => {
 /delivered - View delivered orders
 /stats - View store statistics
 /help - Show this help message
-  `.trim());
+  `.trim(), getKeyboard());
+}
+
+// Commands
+bot.onText(/\/start/, (msg) => {
+  const keyboard = {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '📦 Recent Orders', callback_data: '/orders' },
+          { text: '📊 Statistics', callback_data: '/stats' }
+        ],
+        [
+          { text: '⏳ Pending', callback_data: '/pending' },
+          { text: '🚚 Shipped', callback_data: '/shipped' }
+        ],
+        [
+          { text: '✅ Delivered', callback_data: '/delivered' },
+          { text: '❓ Help', callback_data: '/help' }
+        ]
+      ]
+    }
+  };
+  
+  bot.sendMessage(msg.chat.id, `
+🛒 Welcome to NOVAE Store Bot!
+
+👋 Hi! I'm here to help you manage your store.
+
+🔽 Click the buttons below to get started:
+  `, keyboard);
+});
+
+// Callback query handler for inline keyboard buttons
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
+  
+  // Answer the callback query
+  bot.answerCallbackQuery(query.id);
+  
+  // Call the appropriate command handler based on callback data
+  if (data === '/orders') {
+    await handleOrdersCommand(chatId);
+  } else if (data === '/stats') {
+    await handleStatsCommand(chatId);
+  } else if (data === '/pending') {
+    await handlePendingCommand(chatId);
+  } else if (data === '/shipped') {
+    await handleShippedCommand(chatId);
+  } else if (data === '/delivered') {
+    await handleDeliveredCommand(chatId);
+  } else if (data === '/help') {
+    handleHelpCommand(chatId);
+  }
+});
+
+bot.onText(/\/orders/, async (msg) => {
+  await handleOrdersCommand(msg.chat.id);
+});
+
+bot.onText(/\/pending/, async (msg) => {
+  await handlePendingCommand(msg.chat.id);
+});
+
+bot.onText(/\/shipped/, async (msg) => {
+  await handleShippedCommand(msg.chat.id);
+});
+
+bot.onText(/\/delivered/, async (msg) => {
+  await handleDeliveredCommand(msg.chat.id);
+});
+
+bot.onText(/\/stats/, async (msg) => {
+  await handleStatsCommand(msg.chat.id);
+});
+
+bot.onText(/\/help/, (msg) => {
+  handleHelpCommand(msg.chat.id);
 });
 
 // Health check endpoint
