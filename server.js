@@ -8,6 +8,27 @@ const { cert } = require('firebase-admin/app');
 const app = express();
 app.use(express.json());
 
+// ============================================================
+// Authentication Configuration
+// ============================================================
+// Whitelist of authorized Telegram user IDs
+// Get your user ID by messaging @userinfobot in Telegram
+const AUTHORIZED_USER_IDS = process.env.AUTHORIZED_USER_IDS
+  ? process.env.AUTHORIZED_USER_IDS.split(',').map(id => id.trim())
+  : [];
+
+console.log('🔐 Authorized User IDs:', AUTHORIZED_USER_IDS.length > 0 ? AUTHORIZED_USER_IDS : 'None configured - allowing all users (NOT SECURE)');
+
+// Check if user is authorized
+function isAuthorized(userId) {
+  // If no authorized IDs are configured, allow all (development mode)
+  if (AUTHORIZED_USER_IDS.length === 0) {
+    console.warn('⚠️  No authorized user IDs configured - allowing all users. Set AUTHORIZED_USER_IDS in production!');
+    return true;
+  }
+  return AUTHORIZED_USER_IDS.includes(userId.toString());
+}
+
 // Initialize Firebase Admin
 let db;
 try {
@@ -48,6 +69,22 @@ app.post(`/webhook/${process.env.TELEGRAM_BOT_TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
+
+// Middleware to check authorization for all bot commands
+function checkAuth(handler) {
+  return async (msg) => {
+    const userId = msg.from.id;
+    
+    if (!isAuthorized(userId)) {
+      console.log(`❌ Unauthorized access attempt from user ID: ${userId}`);
+      bot.sendMessage(msg.chat.id, '❌ You are not authorized to use this bot. Please contact the administrator.');
+      return;
+    }
+    
+    console.log(`✅ Authorized user: ${userId} (${msg.from.username || 'no username'})`);
+    return handler(msg);
+  };
+}
 
 // Helper function to get keyboard
 function getKeyboard() {
@@ -281,7 +318,7 @@ function handleHelpCommand(chatId) {
 }
 
 // Commands
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start/, checkAuth((msg) => {
   const keyboard = {
     reply_markup: {
       inline_keyboard: [
@@ -308,12 +345,21 @@ bot.onText(/\/start/, (msg) => {
 
 🔽 Click the buttons below to get started:
   `, keyboard);
-});
+}));
 
 // Callback query handler for inline keyboard buttons
 bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
+  const userId = query.from.id;
   const data = query.data;
+  
+  // Check authorization
+  if (!isAuthorized(userId)) {
+    console.log(`❌ Unauthorized callback from user ID: ${userId}`);
+    bot.answerCallbackQuery(query.id);
+    bot.sendMessage(chatId, '❌ You are not authorized to use this bot. Please contact the administrator.');
+    return;
+  }
   
   // Answer the callback query
   bot.answerCallbackQuery(query.id);
@@ -334,29 +380,29 @@ bot.on('callback_query', async (query) => {
   }
 });
 
-bot.onText(/\/orders/, async (msg) => {
+bot.onText(/\/orders/, checkAuth(async (msg) => {
   await handleOrdersCommand(msg.chat.id);
-});
+}));
 
-bot.onText(/\/pending/, async (msg) => {
+bot.onText(/\/pending/, checkAuth(async (msg) => {
   await handlePendingCommand(msg.chat.id);
-});
+}));
 
-bot.onText(/\/shipped/, async (msg) => {
+bot.onText(/\/shipped/, checkAuth(async (msg) => {
   await handleShippedCommand(msg.chat.id);
-});
+}));
 
-bot.onText(/\/delivered/, async (msg) => {
+bot.onText(/\/delivered/, checkAuth(async (msg) => {
   await handleDeliveredCommand(msg.chat.id);
-});
+}));
 
-bot.onText(/\/stats/, async (msg) => {
+bot.onText(/\/stats/, checkAuth(async (msg) => {
   await handleStatsCommand(msg.chat.id);
-});
+}));
 
-bot.onText(/\/help/, (msg) => {
+bot.onText(/\/help/, checkAuth((msg) => {
   handleHelpCommand(msg.chat.id);
-});
+}));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
