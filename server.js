@@ -86,29 +86,7 @@ function checkAuth(handler) {
   };
 }
 
-// Helper function to get inline keyboard (for messages)
-function getInlineKeyboard() {
-  return {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: '📦 Recent Orders', callback_data: '/orders' },
-          { text: '📊 Statistics', callback_data: '/stats' }
-        ],
-        [
-          { text: '⏳ Pending', callback_data: '/pending' },
-          { text: '🚚 Shipped', callback_data: '/shipped' }
-        ],
-        [
-          { text: '✅ Delivered', callback_data: '/delivered' },
-          { text: '❓ Help', callback_data: '/help' }
-        ]
-      ]
-    }
-  };
-}
-
-// Helper function to get reply keyboard (appears below chat input)
+// Helper function to get reply keyboard (appears above text input)
 function getReplyKeyboard() {
   return {
     reply_markup: {
@@ -159,7 +137,7 @@ async function handleOrdersCommand(chatId) {
     console.log('📦 Orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
-      bot.sendMessage(chatId, '📦 No orders found', getInlineKeyboard());
+      bot.sendMessage(chatId, '📦 No orders found');
       return;
     }
 
@@ -171,11 +149,11 @@ async function handleOrdersCommand(chatId) {
       message += `  Customer: ${order.customer.name}\n\n`;
     });
 
-    bot.sendMessage(chatId, message, getInlineKeyboard());
+    bot.sendMessage(chatId, message);
   } catch (error) {
     console.error('Error fetching orders:', error);
     console.error('Error details:', error.message);
-    bot.sendMessage(chatId, `❌ Error fetching orders: ${error.message}`, getInlineKeyboard());
+    bot.sendMessage(chatId, `❌ Error fetching orders: ${error.message}`);
   }
 }
 
@@ -196,7 +174,7 @@ async function handlePendingCommand(chatId) {
     console.log('📦 Pending orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
-      bot.sendMessage(chatId, '📦 No pending orders', getInlineKeyboard());
+      bot.sendMessage(chatId, '📦 No pending orders');
       return;
     }
 
@@ -208,11 +186,11 @@ async function handlePendingCommand(chatId) {
       message += `  Total: Ks ${order.total.toLocaleString()}\n\n`;
     });
 
-    bot.sendMessage(chatId, message, getInlineKeyboard());
+    bot.sendMessage(chatId, message);
   } catch (error) {
     console.error('Error fetching pending orders:', error);
     console.error('Error details:', error.message);
-    bot.sendMessage(chatId, `❌ Error fetching pending orders: ${error.message}`, getInlineKeyboard());
+    bot.sendMessage(chatId, `❌ Error fetching pending orders: ${error.message}`);
   }
 }
 
@@ -233,7 +211,7 @@ async function handleShippedCommand(chatId) {
     console.log('📦 Shipped orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
-      bot.sendMessage(chatId, '📦 No shipped orders', getInlineKeyboard());
+      bot.sendMessage(chatId, '📦 No shipped orders');
       return;
     }
 
@@ -245,11 +223,11 @@ async function handleShippedCommand(chatId) {
       message += `  Total: Ks ${order.total.toLocaleString()}\n\n`;
     });
 
-    bot.sendMessage(chatId, message, getInlineKeyboard());
+    bot.sendMessage(chatId, message);
   } catch (error) {
     console.error('Error fetching shipped orders:', error);
     console.error('Error details:', error.message);
-    bot.sendMessage(chatId, `❌ Error fetching shipped orders: ${error.message}`, getInlineKeyboard());
+    bot.sendMessage(chatId, `❌ Error fetching shipped orders: ${error.message}`);
   }
 }
 
@@ -270,7 +248,7 @@ async function handleDeliveredCommand(chatId) {
     console.log('📦 Delivered orders fetched:', ordersSnapshot.size);
     
     if (ordersSnapshot.empty) {
-      bot.sendMessage(chatId, '📦 No delivered orders', getInlineKeyboard());
+      bot.sendMessage(chatId, '📦 No delivered orders');
       return;
     }
 
@@ -282,11 +260,11 @@ async function handleDeliveredCommand(chatId) {
       message += `  Total: Ks ${order.total.toLocaleString()}\n\n`;
     });
 
-    bot.sendMessage(chatId, message, getInlineKeyboard());
+    bot.sendMessage(chatId, message);
   } catch (error) {
     console.error('Error fetching delivered orders:', error);
     console.error('Error details:', error.message);
-    bot.sendMessage(chatId, `❌ Error fetching delivered orders: ${error.message}`, getInlineKeyboard());
+    bot.sendMessage(chatId, `❌ Error fetching delivered orders: ${error.message}`);
   }
 }
 
@@ -331,10 +309,10 @@ async function handleStatsCommand(chatId) {
 • Cancelled: ${statusCounts.Cancelled}
     `.trim();
 
-    bot.sendMessage(chatId, message, getInlineKeyboard());
+    bot.sendMessage(chatId, message);
   } catch (error) {
     console.error('Error fetching stats:', error);
-    bot.sendMessage(chatId, '❌ Error fetching statistics', getInlineKeyboard());
+    bot.sendMessage(chatId, '❌ Error fetching statistics');
   }
 }
 
@@ -349,57 +327,21 @@ function handleHelpCommand(chatId) {
 /stats - View store statistics
 /help - Show this help message
 
-📱 Or use the buttons below the chat box!
-  `.trim(), getInlineKeyboard());
+📱 Or use the buttons above the text input!
+  `.trim());
 }
 
 // Commands
 bot.onText(/\/start/, checkAuth((msg) => {
-  // Show both inline keyboard (above) and reply keyboard (below)
+  // Set persistent reply keyboard (appears above text input)
   bot.sendMessage(msg.chat.id, `
 🛒 Welcome to NOVAE Store Bot!
 
 👋 Hi! I'm here to help you manage your store.
 
-🔽 Use the buttons below or tap the options under the chat box:
-  `, getInlineKeyboard());
-  
-  // Set persistent reply keyboard (appears below chat input)
-  bot.sendMessage(msg.chat.id, 'Keyboard options added below 👇', getReplyKeyboard());
+🔽 Tap the buttons above the text input to access commands:
+  `, getReplyKeyboard());
 }));
-
-// Callback query handler for inline keyboard buttons
-bot.on('callback_query', async (query) => {
-  const chatId = query.message.chat.id;
-  const userId = query.from.id;
-  const data = query.data;
-  
-  // Check authorization
-  if (!isAuthorized(userId)) {
-    console.log(`❌ Unauthorized callback from user ID: ${userId}`);
-    bot.answerCallbackQuery(query.id);
-    bot.sendMessage(chatId, '❌ You are not authorized to use this bot. Please contact the administrator.');
-    return;
-  }
-  
-  // Answer the callback query
-  bot.answerCallbackQuery(query.id);
-  
-  // Call the appropriate command handler based on callback data
-  if (data === '/orders') {
-    await handleOrdersCommand(chatId);
-  } else if (data === '/stats') {
-    await handleStatsCommand(chatId);
-  } else if (data === '/pending') {
-    await handlePendingCommand(chatId);
-  } else if (data === '/shipped') {
-    await handleShippedCommand(chatId);
-  } else if (data === '/delivered') {
-    await handleDeliveredCommand(chatId);
-  } else if (data === '/help') {
-    handleHelpCommand(chatId);
-  }
-});
 
 bot.onText(/\/orders/, checkAuth(async (msg) => {
   await handleOrdersCommand(msg.chat.id);
@@ -457,7 +399,7 @@ bot.onText(/\/hide/, checkAuth((msg) => {
 
 // Command to show the reply keyboard
 bot.onText(/\/show/, checkAuth((msg) => {
-  bot.sendMessage(msg.chat.id, 'Keyboard shown below 👇', getReplyKeyboard());
+  bot.sendMessage(msg.chat.id, 'Keyboard shown above text input �', getReplyKeyboard());
 }));
 
 // Health check endpoint
