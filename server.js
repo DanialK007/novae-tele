@@ -104,6 +104,7 @@ function getInlineKeyboard() {
           { text: '❓ Help', callback_data: '/help' }
         ]
       ]
+    }
   };
 }
 
