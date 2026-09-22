@@ -13,6 +13,7 @@ Interactive Telegram bot for NOVAE store management.
 - `/show` - Show reply keyboard above text input
 - `/hide` - Hide reply keyboard
 
+**Inline Keyboard**: Buttons appear under bot messages for quick access
 **Reply Keyboard**: Buttons appear above the text input for quick access to all commands
 
 ## Setup
